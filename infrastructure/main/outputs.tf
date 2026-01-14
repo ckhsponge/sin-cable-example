@@ -143,3 +143,8 @@ output "vpc_links" {
   description = "Map of VPC links created and their attributes"
   value       = module.api_gateway.vpc_links
 }
+
+output "database_host" {
+  description = "The DSQL database host"
+  value = module.dsql.host
+}

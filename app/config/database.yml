@@ -1,0 +1,22 @@
+default_connection: &default_connection
+  adapter: dsql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  #  Also defined in BaseController, allows forcing of obfuscated connection:
+  host: <%= ENV['DATABASE_HOST'] %>
+
+default: &default
+  primary:
+    <<: *default_connection
+
+development:
+  <<: *default
+
+test:
+  <<: *default
+
+staging:
+  <<: *default
+
+production:
+  <<: *default

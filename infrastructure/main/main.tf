@@ -3,29 +3,7 @@
 # }
 
 locals {
-  name   = "ex-${basename(path.cwd)}"
-  region = "eu-west-1"
-
-  dynamodb_table_name = local.name
-  dynamodb_crud_permissions = {
-    effect = "Allow",
-    actions = [
-      "dynamodb:GetItem",
-      "dynamodb:DeleteItem",
-      "dynamodb:PutItem",
-      "dynamodb:Scan",
-      "dynamodb:Query",
-      "dynamodb:UpdateItem",
-      "dynamodb:BatchWriteItem",
-      "dynamodb:BatchGetItem",
-      "dynamodb:DescribeTable",
-      "dynamodb:ConditionCheckItem",
-    ],
-    resources = [
-      module.dynamodb_table.dynamodb_table_arn,
-      "${module.dynamodb_table.dynamodb_table_arn}/index/*"
-    ]
-  }
+  name   = "sin-cable"
 
   tags = {
     Example    = local.name
@@ -121,6 +99,16 @@ module "api_gateway" {
 }
 
 ################################################################################
+# Lambda Package
+################################################################################
+
+data "archive_file" "lambda_package" {
+  type        = "zip"
+  source_dir  = "../../app"
+  output_path = "${path.module}/lambda.zip"
+}
+
+################################################################################
 # Supporting Resources
 ################################################################################
 
@@ -130,15 +118,17 @@ module "connect_lambda_function" {
 
   function_name = "${local.name}-onConnect"
   description   = "Websocket onConnect handler"
-  source_path   = ["function/onConnect.js"]
-  handler       = "onConnect.handler"
-  runtime       = "nodejs24.x"
-  architectures = ["arm64"]
+  create_package = false
+  local_existing_package = data.archive_file.lambda_package.output_path
+  handler       = "handlers/connect.handler"
+  runtime       = "ruby3.4"
+  architectures = ["x86_64"]
   memory_size   = 256
+  timeout       = 15
   publish       = true
 
   environment_variables = {
-    TABLE_NAME = module.dynamodb_table.dynamodb_table_id
+    DATABASE_HOST = module.dsql.host
   }
 
   allowed_triggers = {
@@ -148,10 +138,20 @@ module "connect_lambda_function" {
     }
   }
 
-  attach_policy_statements = true
-  policy_statements = {
-    dynamodb = local.dynamodb_crud_permissions
-  }
+  attach_policy_json = true
+  policy_json = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "dsql:DbConnect",
+          "dsql:DbConnectAdmin"
+        ]
+        Resource = module.dsql.cluster_arn
+      }
+    ]
+  })
 
   tags = local.tags
 }
@@ -162,15 +162,17 @@ module "disconnect_lambda_function" {
 
   function_name = "${local.name}-onDisconnect"
   description   = "Websocket onDisconnect handler"
-  source_path   = ["function/onDisconnect.js"]
-  handler       = "onDisconnect.handler"
-  runtime       = "nodejs24.x"
-  architectures = ["arm64"]
+  create_package = false
+  local_existing_package = data.archive_file.lambda_package.output_path
+  handler       = "handlers/disconnect.handler"
+  runtime       = "ruby3.4"
+  architectures = ["x86_64"]
   memory_size   = 256
+  timeout       = 15
   publish       = true
 
   environment_variables = {
-    TABLE_NAME = module.dynamodb_table.dynamodb_table_id
+    DATABASE_HOST = module.dsql.host
   }
 
   allowed_triggers = {
@@ -180,10 +182,20 @@ module "disconnect_lambda_function" {
     }
   }
 
-  attach_policy_statements = true
-  policy_statements = {
-    dynamodb = local.dynamodb_crud_permissions
-  }
+  attach_policy_json = true
+  policy_json = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "dsql:DbConnect",
+          "dsql:DbConnectAdmin"
+        ]
+        Resource = module.dsql.cluster_arn
+      }
+    ]
+  })
 
   tags = local.tags
 }
@@ -194,15 +206,17 @@ module "send_message_lambda_function" {
 
   function_name = "${local.name}-sendMessage"
   description   = "Websocket sendMessage handler"
-  source_path   = ["function/sendMessage.js"]
-  handler       = "sendMessage.handler"
-  runtime       = "nodejs24.x"
-  architectures = ["arm64"]
+  create_package = false
+  local_existing_package = data.archive_file.lambda_package.output_path
+  handler       = "handlers/send_message.handler"
+  runtime       = "ruby3.4"
+  architectures = ["x86_64"]
   memory_size   = 256
+  timeout       = 15
   publish       = true
 
   environment_variables = {
-    TABLE_NAME = module.dynamodb_table.dynamodb_table_id
+    DATABASE_HOST = module.dsql.host
   }
 
   allowed_triggers = {
@@ -212,6 +226,20 @@ module "send_message_lambda_function" {
     }
   }
 
+  attach_policy_json = true
+  policy_json = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "dsql:DbConnect",
+          "dsql:DbConnectAdmin"
+        ]
+        Resource = module.dsql.cluster_arn
+      }
+    ]
+  })
   attach_policy_statements = true
   policy_statements = {
     manage_connections = {
@@ -219,25 +247,18 @@ module "send_message_lambda_function" {
       actions   = ["execute-api:ManageConnections"],
       resources = ["${module.api_gateway.api_execution_arn}/*"]
     }
-    dynamodb = local.dynamodb_crud_permissions
   }
 
   tags = local.tags
 }
 
-module "dynamodb_table" {
-  source  = "terraform-aws-modules/dynamodb-table/aws"
-  version = "~> 5.0"
+module "dsql" {
+  source = "../dsql"
 
-  name     = local.dynamodb_table_name
-  hash_key = "connectionId"
-
-  attributes = [
-    {
-      name = "connectionId"
-      type = "S"
-    }
-  ]
+  namespace   = "websocket"
+  name        = "api"
+  environment = "prod"
+  aws_region  = var.aws_region
 
   tags = local.tags
 }

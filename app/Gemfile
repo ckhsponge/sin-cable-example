@@ -1,0 +1,25 @@
+# frozen_string_literal: true
+
+source "https://rubygems.org"
+
+# gem "rails"
+
+gem "activerecord", "~> 8.1"
+
+# gem "activerecord-dsql-adapter", "~> 0.1.5"
+gem 'activerecord-dsql-adapter', git: 'https://github.com/ckhsponge/activerecord-dsql-adapter.git', branch: 'rails8'
+
+gem "zeitwerk", "~> 2.7"
+
+group :development do
+  gem 'rack', '~> 3.1'
+  gem 'rack-contrib', '~> 2.5'
+  gem 'sinatra', '~> 4'
+  gem 'sinatra-contrib', '~> 4'
+  gem "rake", "~> 13.3"
+  gem "sinatra-activerecord", "~> 2.0"
+end
+
+gem "aws-sdk-apigatewaymanagementapi", "~> 1.71"
+
+gem "pg", "~> 1.6"

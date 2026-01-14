@@ -1,0 +1,3 @@
+class WebsocketConnection < ApplicationRecord
+
+end
