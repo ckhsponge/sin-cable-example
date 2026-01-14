@@ -20,7 +20,7 @@ module "api_gateway" {
   source = "../api_gateway/"
 
   # API
-  description = "My awesome AWS Websocket API Gateway"
+  description = "AWS Websocket API Gateway"
   name        = local.name
 
   # Custom Domain
@@ -36,21 +36,21 @@ module "api_gateway" {
       operation_name = "ConnectRoute"
 
       integration = {
-        uri = module.connect_lambda_function.lambda_function_invoke_arn
+        uri = module.websocket_lambda_function.lambda_function_invoke_arn
       }
     },
     "$disconnect" = {
       operation_name = "DisconnectRoute"
 
       integration = {
-        uri = module.disconnect_lambda_function.lambda_function_invoke_arn
+        uri = module.websocket_lambda_function.lambda_function_invoke_arn
       }
     },
     "sendmessage" = {
       operation_name = "SendRoute"
 
       integration = {
-        uri = module.send_message_lambda_function.lambda_function_invoke_arn
+        uri = module.websocket_lambda_function.lambda_function_invoke_arn
       }
     },
   }
@@ -112,103 +112,15 @@ data "archive_file" "lambda_package" {
 # Supporting Resources
 ################################################################################
 
-module "connect_lambda_function" {
+module "websocket_lambda_function" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "~> 8.0"
 
-  function_name = "${local.name}-onConnect"
-  description   = "Websocket onConnect handler"
+  function_name = "${local.name}-websocket"
+  description   = "Websocket handler"
   create_package = false
   local_existing_package = data.archive_file.lambda_package.output_path
-  handler       = "handlers/connect.handler"
-  runtime       = "ruby3.4"
-  architectures = ["x86_64"]
-  memory_size   = 256
-  timeout       = 15
-  publish       = true
-
-  environment_variables = {
-    DATABASE_HOST = module.dsql.host
-  }
-
-  allowed_triggers = {
-    apigateway = {
-      service    = "apigateway"
-      source_arn = "${module.api_gateway.api_execution_arn}/*/*"
-    }
-  }
-
-  attach_policy_json = true
-  policy_json = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "dsql:DbConnect",
-          "dsql:DbConnectAdmin"
-        ]
-        Resource = module.dsql.cluster_arn
-      }
-    ]
-  })
-
-  tags = local.tags
-}
-
-module "disconnect_lambda_function" {
-  source  = "terraform-aws-modules/lambda/aws"
-  version = "~> 8.0"
-
-  function_name = "${local.name}-onDisconnect"
-  description   = "Websocket onDisconnect handler"
-  create_package = false
-  local_existing_package = data.archive_file.lambda_package.output_path
-  handler       = "handlers/disconnect.handler"
-  runtime       = "ruby3.4"
-  architectures = ["x86_64"]
-  memory_size   = 256
-  timeout       = 15
-  publish       = true
-
-  environment_variables = {
-    DATABASE_HOST = module.dsql.host
-  }
-
-  allowed_triggers = {
-    apigateway = {
-      service    = "apigateway"
-      source_arn = "${module.api_gateway.api_execution_arn}/*/*"
-    }
-  }
-
-  attach_policy_json = true
-  policy_json = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "dsql:DbConnect",
-          "dsql:DbConnectAdmin"
-        ]
-        Resource = module.dsql.cluster_arn
-      }
-    ]
-  })
-
-  tags = local.tags
-}
-
-module "send_message_lambda_function" {
-  source  = "terraform-aws-modules/lambda/aws"
-  version = "~> 8.0"
-
-  function_name = "${local.name}-sendMessage"
-  description   = "Websocket sendMessage handler"
-  create_package = false
-  local_existing_package = data.archive_file.lambda_package.output_path
-  handler       = "handlers/send_message.handler"
+  handler       = "handlers/websocket.handler"
   runtime       = "ruby3.4"
   architectures = ["x86_64"]
   memory_size   = 256
