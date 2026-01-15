@@ -10,11 +10,20 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_14_170929) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_15_220250) do
   create_table "websocket_connections", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "connection_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["connection_id"], name: "index_websocket_connections_on_connection_id", unique: true, using: :btree_index
+  end
+
+  create_table "websocket_subscriptions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "connection_id", null: false
+    t.datetime "created_at", null: false
+    t.string "path", null: false
+    t.datetime "updated_at", null: false
+    t.index ["connection_id"], name: "index_websocket_subscriptions_on_connection_id", using: :btree_index
+    t.index ["path", "connection_id"], name: "index_websocket_subscriptions_on_path_and_connection_id", unique: true, using: :btree_index
   end
 end

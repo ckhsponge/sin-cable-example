@@ -63,4 +63,5 @@ infrastructure/main/builds
 
 lambda.zip
 node_modules
+.env
 

@@ -12,6 +12,18 @@ Encoding.default_internal = Encoding::UTF_8
 require 'json'
 require 'zeitwerk'
 
+def development?
+  ENV['RACK_ENV'] != 'production'
+end
+
+if development?
+  require 'byebug'
+  require 'dotenv'
+  Dotenv.load('../.env')
+
+  # LiteCable.config.log_level = Logger::DEBUG
+end
+
 APP_ROOT = File.dirname(__FILE__)
 
 # def development?
@@ -29,13 +41,12 @@ APP_ROOT = File.dirname(__FILE__)
 
 loader = Zeitwerk::Loader.new
 loader.push_dir("#{__dir__}/models")
+loader.push_dir("#{__dir__}/controllers")
 loader.setup
 
 Dir["#{APP_ROOT}/initializers/*.rb"].sort.each { |file| puts file; require file }
-
-# require 'sinatra/activerecord'
-
 Aws.use_bundled_cert!
 
+require 'sinatra/activerecord' if development? # so migrations can run
 
 puts 'Done application load'

@@ -9,7 +9,7 @@ export const WebSocketDemo = () => {
     // 'wss://vmb0rz6ay3.execute-api.us-east-1.amazonaws.com/prod'
   );
   const [messageHistory, setMessageHistory] = useState<any[]>([]);
-  const [roomId, setRoomId] = useState('');
+  const [roomId, setRoomId] = useState('aaa');
   const [message, setMessage] = useState('Hello');
   const [user, setUser] = useState('Bob');
   

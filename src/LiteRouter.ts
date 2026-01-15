@@ -4,7 +4,7 @@ import useWebSocket, { ReadyState } from 'react-use-websocket';
 const LITE_ROUTER_ID = Math.random().toString(36).substring(2, 18);
 
 export const useLiteRouter = (url: string) => {
-  const { sendMessage: sendToWebSocket, lastMessage, readyState } = useWebSocket(url);
+  const { sendMessage: sendToWebSocket, lastMessage, readyState } = useWebSocket(url, {queryParams: { connection_id: LITE_ROUTER_ID}});
 
   useEffect(() => {
     if (readyState === ReadyState.OPEN) {
