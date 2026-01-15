@@ -13,19 +13,31 @@ class WebsocketConnection < ApplicationRecord
   end
 
   def self.send_message(domain, stage, data)
-    client = Aws::ApiGatewayManagementApi::Client.new(
-      endpoint: "https://#{domain}/#{stage}"
-    )
 
     WebsocketConnection.find_each do |connection|
       begin
-        client.post_to_connection(
-          connection_id: connection.connection_id,
-          data: data
-        )
       rescue Aws::ApiGatewayManagementApi::Errors::GoneException
         connection.destroy
       end
     end
+  end
+
+  def send_message(domain, stage, data)
+    client = Aws::ApiGatewayManagementApi::Client.new(
+      endpoint: "https://#{domain}/#{stage}"
+    )
+
+    # data = {
+    #   version: "0.8.2",
+    #   data: data,
+    #   type: :text
+    # }
+
+    data = data.to_json if data.is_a?(Hash)
+
+    client.post_to_connection(
+      connection_id: self.connection_id,
+      data: data.to_json
+    )
   end
 end
