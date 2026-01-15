@@ -18,8 +18,17 @@ group :development do
   gem 'sinatra-contrib', '~> 4'
   gem "rake", "~> 13.3"
   gem "sinatra-activerecord", "~> 2.0"
+
+  # For Rack/Puma server
+  gem "websocket", "~> 1.2.4"
+  # For AnyCable
+  gem "anycable", "~> 1.5"
+  gem "litecable", "~> 0.8.2"
+  gem "puma", "~> 7.1"
 end
 
 gem "aws-sdk-apigatewaymanagementapi", "~> 1.71"
 
 gem "pg", "~> 1.6"
+
+
