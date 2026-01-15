@@ -9,8 +9,11 @@ export const WebSocketDemo = () => {
     // 'wss://vmb0rz6ay3.execute-api.us-east-1.amazonaws.com/prod'
   );
   const [messageHistory, setMessageHistory] = useState<any[]>([]);
+  const [roomId, setRoomId] = useState('');
+  const [message, setMessage] = useState('Hello');
+  const [user, setUser] = useState('Bob');
   
-  const { speak, lastMessage, readyState } = useLiteRouter(socketUrl);
+  const { perform, subscribe, unsubscribe, lastMessage, readyState } = useLiteRouter(socketUrl);
 
   useEffect(() => {
     if (lastMessage) {
@@ -23,29 +26,46 @@ export const WebSocketDemo = () => {
     }
   }, [lastMessage]);
 
-  // const nextUrl = 'wss://demos.kaazing.com/echo';
-  // const nextUrl = 'wss://n7jmbnjma9.execute-api.us-east-1.amazonaws.com/prod';
-  const nextUrl = 'ws://localhost:9292/cable';
-
-  const handleClickChangeSocketUrl = useCallback(
-    () => setSocketUrl(nextUrl),
-    []
-  );
-
   const handleClickSendMessage = useCallback(() => {
-    speak('Hello');
-  }, [speak]);
+    perform(`rooms/${roomId}`, { message, user });
+  }, [perform, message, user, roomId]);
+
+  const handleSubscribe = useCallback(() => {
+    if (roomId) subscribe(`rooms/${roomId}`, { action: 'subscribe' });
+  }, [perform, roomId]);
+
+  const handleUnsubscribe = useCallback(() => {
+    if (roomId) unsubscribe(`rooms/${roomId}`, { action: 'unsubscribe' });
+  }, [perform, roomId]);
 
   return (
     <div>
+      <p>Socket URL: {socketUrl}</p>
       <p>
-        <button onClick={handleClickChangeSocketUrl}>
-          Click Me to change Socket Url
-        </button>
+        <input 
+          type="text" 
+          placeholder="Room ID" 
+          value={roomId} 
+          onChange={(e) => setRoomId(e.target.value)} 
+        />
+        <button onClick={handleSubscribe}>Subscribe</button>
+        <button onClick={handleUnsubscribe}>Unsubscribe</button>
       </p>
       <p>
+        <input
+            type="text"
+            placeholder="User"
+            value={user}
+            onChange={(e) => setUser(e.target.value)}
+        />
+        <input
+            type="text"
+            placeholder="Message"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+        />
         <button onClick={handleClickSendMessage}>
-          Click Me to send 'Hello'
+          Send Message
         </button>
       </p>
       <p>The WebSocket is using LiteRouter - Status: {{

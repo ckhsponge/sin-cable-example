@@ -25,10 +25,12 @@ group :development do
   gem "anycable", "~> 1.5"
   gem "litecable", "~> 0.8.2"
   gem "puma", "~> 7.1"
+  gem "rerun", "~> 0.14.0"
 end
 
 gem "aws-sdk-apigatewaymanagementapi", "~> 1.71"
 
 gem "pg", "~> 1.6"
+
 
 

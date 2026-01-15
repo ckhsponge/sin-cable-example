@@ -34,8 +34,29 @@ module LiteRouter
       stream_from "lite_router"
     end
 
-    def speak(data)
-      LiteCable.broadcast "lite_router", { message: data["message"], sid: sid }
+    def perform(data)
+      data = data.with_indifferent_access
+      puts "PERFORM #{data}"
+      path = data[:path]
+      input = data[:input]
+      connection_id = data[:connection_id]
+      LiteCable.broadcast "lite_router", { result: 'performed', path: path, input: input, connection_id: connection_id }
+    end
+
+    def subscribe(data)
+      data = data.with_indifferent_access
+      puts "SUBSCRIBE #{data}"
+      path = data[:path]
+      connection_id = data[:connection_id]
+      LiteCable.broadcast "lite_router", { result: 'subscribed', path: path, connection_id: connection_id }
+    end
+
+    def unsubscribe(data)
+      data = data.with_indifferent_access
+      puts "SUBSCRIBE #{data}"
+      path = data[:path]
+      connection_id = data[:connection_id]
+      LiteCable.broadcast "lite_router", { result: 'unsubscribed', path: path, connection_id: connection_id }
     end
 
     private
