@@ -40,7 +40,7 @@ module LiteRouter
       path = data[:path]
       input = (data[:input] || {}).with_indifferent_access
       # connection_id = data[:connection_id]
-      LiteCable.broadcast broadcast_channel, { result: 'performed', path: path, input: input, connection_id: connection_id }
+      # LiteCable.broadcast broadcast_channel, { result: 'performed', path: path, input: input, connection_id: connection_id }
       SocketController.handle_path(path, input)
     end
 
@@ -49,7 +49,7 @@ module LiteRouter
       puts "SUBSCRIBE #{data}"
       path = data[:path]
       # connection_id = data[:connection_id]
-      LiteCable.broadcast broadcast_channel, { result: 'subscribed', path: path, connection_id: connection_id }
+      # LiteCable.broadcast broadcast_channel, { result: 'subscribed', path: path, connection_id: connection_id }
       WebsocketSubscription.subscribe(path, connection_id)
     end
 
@@ -58,14 +58,16 @@ module LiteRouter
       puts "SUBSCRIBE #{data}"
       path = data[:path]
       # connection_id = data[:connection_id]
-      LiteCable.broadcast broadcast_channel, { result: 'unsubscribed', path: path, connection_id: connection_id }
+      # LiteCable.broadcast broadcast_channel, { result: 'unsubscribed', path: path, connection_id: connection_id }
       WebsocketSubscription.unsubscribe(path, connection_id)
     end
 
-    private
+    def self.broadcast_channel(connection_id)
+      "lite_router_#{connection_id}"
+    end
 
     def broadcast_channel
-      "lite_router_#{connection_id}"
+      self.class.broadcast_channel(connection_id)
     end
 
     def connection_id
@@ -74,18 +76,3 @@ module LiteRouter
     end
   end
 end
-
-# LiteCable::Connection::Subscriptions
-#
-# module LiteCable
-#   module Connection
-#     # Manage the connection channels and route messages
-#     class Subscriptions
-#       def find(identifier)
-#         s = subscriptions[identifier]
-#         puts "SUBSCRIPTIONS #{identifier} #{subscriptions}"
-#         s
-#       end
-#     end
-#   end
-# end

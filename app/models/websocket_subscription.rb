@@ -15,6 +15,12 @@ class WebsocketSubscription < ApplicationRecord
     where(path: path, connection_id: connection_id).delete_all
   end
 
+  def self.connect(connection_id)
+    return unless connection_id.present?
+
+    # any action needed?
+  end
+
   def self.disconnect(connection_id)
     return unless connection_id.present?
 

@@ -14,7 +14,4 @@ class SocketController
     end
   end
 
-  def broadcast(path, data)
-
-  end
 end

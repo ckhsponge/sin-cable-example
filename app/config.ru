@@ -13,6 +13,7 @@ unless ENV["ANYCABLE"]
   require "lite_cable"
   require "lite_cable/server"
   require_relative "dev/lite_router"
+  require_relative "dev/broadcaster/lite"
 
   map "/cable" do
     use LiteCable::Server::Middleware, connection_class: LiteRouter::Connection

@@ -1,19 +1,23 @@
 import React, {useState, useCallback, useEffect} from 'react';
 import { useLiteRouter } from './LiteRouter';
 import { ReadyState } from 'react-use-websocket';
+import {useRouter} from "./Router";
 
 export const WebSocketDemo = () => {
-  const [socketUrl, setSocketUrl] = useState(
-    // 'wss://echo.websocket.org'
-    'ws://localhost:9292/cable'
-    // 'wss://vmb0rz6ay3.execute-api.us-east-1.amazonaws.com/prod'
-  );
+  const localUrl = 'ws://localhost:9292/cable';
+  const apiGatewayUrl = 'wss://vmb0rz6ay3.execute-api.us-east-1.amazonaws.com/prod';
+
   const [messageHistory, setMessageHistory] = useState<any[]>([]);
   const [roomId, setRoomId] = useState('aaa');
   const [message, setMessage] = useState('Hello');
   const [user, setUser] = useState('Bob');
+  const [useLite, setUseLite] = useState(false);
+
+  const liteRouter = useLiteRouter(localUrl);
+  const router = useRouter(apiGatewayUrl);
   
-  const { perform, subscribe, unsubscribe, lastMessage, readyState } = useLiteRouter(socketUrl);
+  const { perform, subscribe, unsubscribe, lastMessage, readyState } = useLite ? liteRouter : router;
+  const socketUrl = useLite ? localUrl : apiGatewayUrl;
 
   useEffect(() => {
     if (lastMessage) {
@@ -40,6 +44,16 @@ export const WebSocketDemo = () => {
 
   return (
     <div>
+      <p>
+        <label>
+          <input 
+            type="checkbox" 
+            checked={useLite} 
+            onChange={(e) => setUseLite(e.target.checked)} 
+          />
+          Use LiteRouter
+        </label>
+      </p>
       <p>Socket URL: {socketUrl}</p>
       <p>
         <input 
@@ -68,7 +82,7 @@ export const WebSocketDemo = () => {
           Send Message
         </button>
       </p>
-      <p>The WebSocket is using LiteRouter - Status: {{
+      <p>The WebSocket is using {useLite ? 'LiteRouter' : 'Router'} - Status: {{
         [ReadyState.CONNECTING]: 'Connecting',
         [ReadyState.OPEN]: 'Open',
         [ReadyState.CLOSING]: 'Closing',

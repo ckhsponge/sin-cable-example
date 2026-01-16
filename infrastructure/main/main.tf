@@ -2,8 +2,13 @@
 #   region = local.region
 # }
 
+data "aws_caller_identity" "current" {}
+
 locals {
   name   = "sin-cable"
+  lambda_name = "sin-cable-websocket"
+  lambda_arn = "arn:aws:lambda:us-east-1:${data.aws_caller_identity.current.account_id}:function:${local.lambda_name}"
+  lambda_function_uri = "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/${local.lambda_arn}/invocations"
 
   tags = {
     Example    = local.name
@@ -36,22 +41,27 @@ module "api_gateway" {
       operation_name = "ConnectRoute"
 
       integration = {
-        uri = module.websocket_lambda_function.lambda_function_invoke_arn
+        uri = local.lambda_function_uri
       }
     },
     "$disconnect" = {
       operation_name = "DisconnectRoute"
 
       integration = {
-        uri = module.websocket_lambda_function.lambda_function_invoke_arn
+        uri = local.lambda_function_uri
       }
     },
-    "sendmessage" = {
-      operation_name = "SendRoute"
-
-      integration = {
-        uri = module.websocket_lambda_function.lambda_function_invoke_arn
-      }
+    "perform" = {
+      operation_name = "Perform"
+      integration = { uri = local.lambda_function_uri }
+    },
+    "subscribe" = {
+      operation_name = "Subscribe"
+      integration = { uri = local.lambda_function_uri }
+    },
+    "unsubscribe" = {
+      operation_name = "Unsubscribe"
+      integration = { uri = local.lambda_function_uri }
     },
   }
 
@@ -129,6 +139,8 @@ module "websocket_lambda_function" {
 
   environment_variables = {
     DATABASE_HOST = module.dsql.host
+    API_GATEWAY_ENDPOINT = "https://${module.api_gateway.stage_domain_name}/${module.api_gateway.stage_id}"
+    RACK_ENV = "production"
   }
 
   allowed_triggers = {
