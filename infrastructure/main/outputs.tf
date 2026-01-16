@@ -121,6 +121,11 @@ output "stage_invoke_url" {
   value       = module.api_gateway.stage_invoke_url
 }
 
+output "cloudfront_invoke_url" {
+  description = "The CloudFront URL to invoke the API"
+  value       = "wss://${aws_cloudfront_distribution.api_gateway.domain_name}/${local.stage_name}"
+}
+
 ################################################################################
 # Stage Access Logs - Log Group
 ################################################################################

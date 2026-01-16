@@ -5,7 +5,8 @@ import {useRouter} from "./Router";
 
 export const WebSocketDemo = () => {
   const localUrl = 'ws://localhost:9292/cable';
-  const apiGatewayUrl = 'wss://vmb0rz6ay3.execute-api.us-east-1.amazonaws.com/prod';
+  const apiGatewayUrl = 'wss://d36x6e07hge8hx.cloudfront.net/prod';
+      // 'wss://vmb0rz6ay3.execute-api.us-east-1.amazonaws.com/prod';
 
   const [messageHistory, setMessageHistory] = useState<any[]>([]);
   const [roomId, setRoomId] = useState('aaa');
