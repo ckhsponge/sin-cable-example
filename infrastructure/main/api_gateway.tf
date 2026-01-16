@@ -14,32 +14,13 @@ module "api_gateway" {
 
   # Routes & Integration(s)
   routes = {
-    "$connect" = {
+    "$default" = {
       operation_name = "ConnectRoute"
 
       integration = {
         uri = local.lambda_function_uri
       }
-    },
-    "$disconnect" = {
-      operation_name = "DisconnectRoute"
-
-      integration = {
-        uri = local.lambda_function_uri
-      }
-    },
-    "perform" = {
-      operation_name = "Perform"
-      integration = { uri = local.lambda_function_uri }
-    },
-    "subscribe" = {
-      operation_name = "Subscribe"
-      integration = { uri = local.lambda_function_uri }
-    },
-    "unsubscribe" = {
-      operation_name = "Unsubscribe"
-      integration = { uri = local.lambda_function_uri }
-    },
+    }
   }
 
   # Stage
